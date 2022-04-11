@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties">
+    <sys_properties action="DELETE">
+        <choices/>
+        <description/>
+        <ignore_cache>true</ignore_cache>
+        <is_private>false</is_private>
+        <name>tool.export.tool.table_common_fields</name>
+        <read_roles/>
+        <suffix/>
+        <sys_class_name>sys_properties</sys_class_name>
+        <sys_created_by>kyle.cribbs</sys_created_by>
+        <sys_created_on>2022-04-10 17:09:06</sys_created_on>
+        <sys_id>57e4ad191b3a4110bea4fcc6cc4bcbd3</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>tool.export.tool.table_common_fields</sys_name>
+        <sys_package display_value="Import/Export Tool" source="31fc99111b3a4110bea4fcc6cc4bcb6b">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Import/Export Tool">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_scope>
+        <sys_update_name>sys_properties_57e4ad191b3a4110bea4fcc6cc4bcbd3</sys_update_name>
+        <sys_updated_by>kyle.cribbs</sys_updated_by>
+        <sys_updated_on>2022-04-10 17:09:06</sys_updated_on>
+        <type>string</type>
+        <value>{&#13;
+  "sys_user": ['user_name']&#13;
+}</value>
+        <write_roles/>
+    </sys_properties>
+    <sys_translated_text action="DELETE" query="documentkey=57e4ad191b3a4110bea4fcc6cc4bcbd3"/>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="Import/Export Tool">31fc99111b3a4110bea4fcc6cc4bcb6b</application>
+        <file_path/>
+        <instance_id>ef3209f79b041f44a4e16b8af359ffdb</instance_id>
+        <instance_name>dev49694</instance_name>
+        <name>sys_properties_57e4ad191b3a4110bea4fcc6cc4bcbd3</name>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties"><sys_properties action="INSERT_OR_UPDATE"><choices/><description/><ignore_cache>true</ignore_cache><is_private>false</is_private><name>tool.export.tool.table_common_fields</name><read_roles/><suffix/><sys_class_name>sys_properties</sys_class_name><sys_created_by>kyle.cribbs</sys_created_by><sys_created_on>2022-04-10 17:09:06</sys_created_on><sys_id>57e4ad191b3a4110bea4fcc6cc4bcbd3</sys_id><sys_mod_count>0</sys_mod_count><sys_name>tool.export.tool.table_common_fields</sys_name><sys_package display_value="Import/Export Tool" source="31fc99111b3a4110bea4fcc6cc4bcb6b">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_package><sys_policy/><sys_scope display_value="Import/Export Tool">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_scope><sys_update_name>sys_properties_57e4ad191b3a4110bea4fcc6cc4bcbd3</sys_update_name><sys_updated_by>kyle.cribbs</sys_updated_by><sys_updated_on>2022-04-10 17:09:06</sys_updated_on><type>string</type><value>{&#13;
+  "sys_user": ['user_name']&#13;
+}</value><write_roles/></sys_properties><sys_translated_text action="delete_multiple" query="documentkey=57e4ad191b3a4110bea4fcc6cc4bcbd3"/></record_update>]]></payload>
+        <payload_hash>-1154263228</payload_hash>
+        <record_name>tool.export.tool.table_common_fields</record_name>
+        <reverted_from/>
+        <source>fad8887521920110a866589604c20da8</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>kyle.cribbs</sys_created_by>
+        <sys_created_on>2022-04-10 17:09:06</sys_created_on>
+        <sys_id>e7e4ad191b3a4110bea4fcc6cc4bcbd5</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>18014735e5a0000001</sys_recorded_at>
+        <sys_updated_by>kyle.cribbs</sys_updated_by>
+        <sys_updated_on>2022-04-10 17:09:06</sys_updated_on>
+        <type>System Property</type>
+        <update_guid>23e4ad19543a4110ebe2bdbb50c8a0d5</update_guid>
+        <update_guid_history>23e4ad19543a4110ebe2bdbb50c8a0d5:-1154263228</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete/>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>kyle.cribbs</sys_created_by>
+        <sys_created_on>2022-04-10 17:10:44</sys_created_on>
+        <sys_db_object display_value="" name="sys_properties">sys_properties</sys_db_object>
+        <sys_id>0093eb402646496388828331504b9d01</sys_id>
+        <sys_metadata>57e4ad191b3a4110bea4fcc6cc4bcbd3</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>tool.export.tool.table_common_fields</sys_name>
+        <sys_package display_value="Import/Export Tool" source="31fc99111b3a4110bea4fcc6cc4bcb6b">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_package>
+        <sys_parent/>
+        <sys_policy/>
+        <sys_scope display_value="Import/Export Tool">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_scope>
+        <sys_scope_delete display_value="">c3fac9df0ffd4ae881d5aa66afbce289</sys_scope_delete>
+        <sys_update_name>sys_properties_57e4ad191b3a4110bea4fcc6cc4bcbd3</sys_update_name>
+        <sys_update_version display_value="sys_properties_57e4ad191b3a4110bea4fcc6cc4bcbd3">e7e4ad191b3a4110bea4fcc6cc4bcbd5</sys_update_version>
+        <sys_updated_by>kyle.cribbs</sys_updated_by>
+        <sys_updated_on>2022-04-10 17:10:44</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>

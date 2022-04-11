@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_ui_context_menu">
+    <sys_ui_context_menu action="INSERT_OR_UPDATE">
+        <action_script><![CDATA[/**
+ * Script executed on the Client for this menu action
+ *
+ * The following variables are available to the script:
+ *    'g_list' the GlideList2 that the script is running against (only valid for List context menus)
+ *    'g_fieldName' the name of the field that the context menu is running against (only valid for List context menus)
+ *    'g_sysId' the sys_id of the row or form that the script is running against
+ *    'rowSysId' is also set to the sys_id of the row to support legacy actions, but g_sysId is preferred
+ * !ListProperties.isRelatedList() && !ListProperties.isRefList() && !ListProperties.isRemoteTable()  && parent.getTableName() == "sys_dictionary" || gs.error('test' + parent.getTableName())
+ */
+//!ListProperties.isRelatedList() && !ListProperties.isRefList() && !ListProperties.isRemoteTable()  && parent.getTableName() == "sys_dictionary" || gs.error('test' + parent.getTableName());
+runContextAction();
+
+function runContextAction() {
+	var url = new GlideURL('import_export_tool.do');
+	var referringUrl = g_list.getReferringURL();
+	url.addParam('sysparm_referring_url', referringUrl);
+	url.addParam('sysparm_target', g_list.getTableName());
+	
+	// add values needed for creating a template		
+	url.addParam('sysparm_rows', g_list.grandTotalRows);
+	
+	var tinyQuery = "sysparm_tiny=";
+	var tinyIndex = referringUrl.indexOf(tinyQuery);
+	if (tinyIndex == -1){ // TinyURL is not used in this List
+		var query = g_list.getQuery({all: true});
+		if (query == "") {
+			query = g_list.getRelatedQuery();
+			if(g_list.getRelated().startsWith('REL')){
+				query = "project_id" + g_list.getRelatedQuery();
+			}
+			
+		}
+		url.addParam('sysparm_query', query);
+	}
+	else { //Let's use the TinyURL provided
+		var tinyUrlId = referringUrl.substring(tinyIndex + tinyQuery.length);
+		url.addParam('sysparm_tiny', tinyUrlId);
+	}
+	//gs.info(url.getURL());
+	window.location = url.getURL();
+}]]></action_script>
+        <active>true</active>
+        <comments/>
+        <condition>new global.ImportExportUtil().contextMenuCondition(ListProperties) == true</condition>
+        <do_not_cache>false</do_not_cache>
+        <dynamic_actions_script><![CDATA[/** 
+ * This server-side script is used to dynamically create actions for the context menu, such as the list of available templates 
+ * 
+ * The following variables are available to the script: 
+ *    'g_tableName' the name of the current table 
+ *    'g_listId' the id of the list we are building the context menu for 
+ *    'g_itemName' the name of the UI Context Menu item we are building 
+ *    'g_itemOrder' the order defined in the UI Context Menu item we are building 
+ * 
+ * Add items to the context menu by calling: 
+ *    g_contextMenu.addAction(item_id, label, script_string, order); 
+ */ 
+]]></dynamic_actions_script>
+        <menu>list_header</menu>
+        <name>Import/Export Tool</name>
+        <on_show_script><![CDATA[/**
+ * This client-side script is used to dynamically change the context menu before it is displayed.
+ * It is called before showing the context menu if the Run onShow script flag is checked.
+ *
+ * The following variables are available to the script:
+ *    'g_menu' the context menu that is about to be shown
+ *    'g_item' the current context menu item
+ *    'g_list' the GlideList2 that the script is running against (only valid for List context menus)
+ *    'g_fieldName' the name of the field that the context menu is running against (only valid for List context menus)
+ *    'g_fieldLabel' the label of the field that the context menu is running against (only valid for List context menus)
+ *    'g_sysId' the sys_id of the row or form that the script is running against
+ */
+// if (g_list.getTableName() == 'x_snc_authorizatio_interconnections') {
+//    // list is grouped so enable to Ungroup menu item
+//    g_menu.setEnabled(g_item);
+// }
+// else if (g_list.getTableName() == 'x_snc_authorizatio_software') {
+//    // list is grouped so enable to Ungroup menu item
+//    g_menu.setEnabled(g_item);
+// } 
+// else if (g_list.getTableName() == 'x_snc_authorizatio_hardware') {
+//    // list is grouped so enable to Ungroup menu item
+//    g_menu.setEnabled(g_item);
+// } 
+// else if (g_list.getTableName() == 'x_snc_authorizatio_rmf_assigned_controls') {
+//    // list is grouped so enable to Ungroup menu item
+//    g_menu.setEnabled(g_item);
+// } 
+// else {
+//    // list is not grouped, so disable the Ungroup menu item
+//    g_menu.setDisabled(g_item);
+// }
+]]></on_show_script>
+        <order>4000</order>
+        <parent/>
+        <run_on_show_script>false</run_on_show_script>
+        <sys_class_name>sys_ui_context_menu</sys_class_name>
+        <sys_created_by>kyle.cribbs</sys_created_by>
+        <sys_created_on>2022-04-10 16:35:37</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>690d51511b3a4110bea4fcc6cc4bcb37</sys_id>
+        <sys_mod_count>20</sys_mod_count>
+        <sys_name>Import/Export Tool</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="Import/Export Tool" source="31fc99111b3a4110bea4fcc6cc4bcb6b">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Import/Export Tool">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_scope>
+        <sys_update_name>sys_ui_context_menu_690d51511b3a4110bea4fcc6cc4bcb37</sys_update_name>
+        <sys_updated_by>kyle.cribbs</sys_updated_by>
+        <sys_updated_on>2022-04-10 18:43:12</sys_updated_on>
+        <table>global</table>
+        <track_selected>false</track_selected>
+        <type>action</type>
+    </sys_ui_context_menu>
+</record_update>

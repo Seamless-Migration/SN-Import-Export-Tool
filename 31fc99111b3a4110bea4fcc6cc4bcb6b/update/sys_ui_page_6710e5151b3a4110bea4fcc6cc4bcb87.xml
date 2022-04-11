@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script><![CDATA[var urlParams = new URLSearchParams(window.location.search);
+
+$(function() {
+    $(document).tooltip();
+});
+
+var allFields = true;
+var tableName = $j('#tableName').val();
+var isAdmin = $j('#isAdmin').val();
+if(tableName == 'x_snc_authorizatio_rmf_assigned_controls'){
+   $j('#allocatedAlert').show();
+}
+
+//make sure there is a tablename. if a user got to this page in an unauthorized manner this should catch it
+$j(document).ready(function() {
+    $j('#referringUrl').val(document.referrer);
+    if (tableName == "") {
+        $j('.container').hide();
+        alert("There is no table specified. Please use context menu when navigating here!");
+    }
+});
+
+//toggle for the button that displays or hides the raw data on import
+$j("#showRawData").on('click',function(){
+	$j('#csvData2').toggle();
+});
+
+//all fields checkbox. CURRENTLY NOT USED
+$j("#allFields").change(function() {
+    if ($j('#allFields').is(":checked")) {
+        allFields = true;
+        $j(".fieldCB").prop("checked", true);
+    } else {
+        $j(".fieldCB").prop("checked", false);
+        $j(".mandatoryCB").prop("checked", true);
+    }
+});
+
+$j(":checkbox[value='u_z_imported']").prop("checked", true);
+$j(":checkbox[value='u_z_imported']").prop("disabled", true);
+
+//handles the read only checkbox and checks or unchecks read only checkboxes
+$j("#allReadOnlyFields").change(function() {
+    if ($j('#commonExport').is(":checked")) {
+        $j(".readonlyCB").prop("checked", false);
+    }
+});
+
+//Import logic
+var selectedFile;
+document
+    .getElementById("fileUpload")
+    .addEventListener("change", function(event) {
+        selectedFile = event.target.files[0];
+    });
+document
+    .getElementById("uploadExcel")
+    .addEventListener("click", function() {
+        $j('#show_loading_gif').show();
+        $j('.previewAlert').hide();
+		if(isAdmin == 'true'){
+			$j('#showRawData').show();
+		}
+        if (selectedFile) {
+            var fileReader = new FileReader();
+            fileReader.onload = function(event) {
+				//Main data that will get used for CRUD
+                var data = event.target.result;
+				var rows;
+				var constColumnCount;
+				var columnCount;
+				
+				var rowForColumn = data.split("\n");
+				var loopOnceCount = 0;
+				rowForColumn.forEach(function getvalues(ourrow2) {
+					loopOnceCount++;
+					if(loopOnceCount == 1){
+						var re2 = /,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/;
+						var columns2 = ourrow2.split(re2);
+						columnCount = columns2.length;
+						constColumnCount = columns2.length;
+					}
+					return false;
+				});
+				
+				var re3 = /,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/;
+				var splitData = data.split(re3);
+				var colCount = 0;
+				var rowCount = 1;
+				splitData.forEach(function getvalues(ourrow3) {
+					colCount++;
+					//if it is the last column in the row replace the return character with weird characters
+					if(colCount == columnCount){
+						var beforeReturn= ourrow3.substr(0, ourrow3.indexOf("\n")); 
+						var newString = ourrow3.replace(/\n/,'^&*&^');
+ 						var findString = data.indexOf(ourrow3);
+						if(findString !== -1){
+							data = data.replace(ourrow3,newString);
+						}
+						colCount = 0;
+						//after the first row we have to reduce the column count by 1 because the last value and the first value in the next column are stuck together thus reducing the following rows by 1 column. Confusing I know. but if the first row has 15 columns every row after that will have 14 because we are not seperating the rows correctly yet. 
+						if(rowCount == 1){
+							columnCount = columnCount-1;
+							rowCount++;
+						}
+					}
+				});
+				
+				//now we will loop through the main data and split it via the weird characters that we added with the code above
+                var count = 0;
+                var html = "<table class='table table-bordered table-striped' id='table'>";
+                rows = data.split("^&*&^");
+				
+				var seperator = '^&*&^';
+				var returnChar = '\n';
+				
+                var num = 0;
+                var col;
+                
+                //LOOP THROUGH EVERY ROW IN THE DATA
+                rows.forEach(function getvalues(ourrow) {
+                    num++;
+                    var columns;
+                    var currCols = ourrow;
+					
+					//replace the weird seperator characters with a return character so that it can be imported correctly.
+					data = data.replace(seperator,returnChar);
+					
+                    //Only split the columns at commas that are not surrounded by quotes.
+                    var firstChar = ourrow.charAt(0);
+                    
+					var re = /,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/;
+					columns = ourrow.split(re);
+
+                    if (num == 1) {
+                        html += "<thead>";
+                    }
+
+                    html += "<tr>";
+
+
+                    //LOOP THROUGH THE COLUMNS IN THAT ROW
+                    for (var i = 0; i < columns.length; i++) {
+                        //IF IT IS THE FIRST TIME THROUGH THE ROW LOOP AND IT IS THE FIRST TIME THROUGH THE COLUMN LOOP AND THERE IS AN UPSIDE DOWN ? IN THE FIRST COLUMN
+                        //THEN REMOVE THE FIRST THREE CHARACTERS FROM THE COLUMN NAME, THEN SAVE THE CLEAN NAME TO THE VARIABLE COL, AND REPLACE IT IN THE DATA VARIABLE.
+                        //THIS IS TO REMOVE GUNK THAT GETS TIED ON TO THE SYSID COLUMN NAME WHEN IMPORTED IN.
+                        if (num == 1 && i == 0) {
+                            var sysID = columns[i];
+                            var newCol;
+                            if (firstChar == "\"") {
+								col = sysID.substr(sysID.length - 8);
+                                //newCol = "\"s" + col;
+								newCol = col;
+                            } else {
+								col = sysID.substr(sysID.length - 6);
+                                newCol = col;
+                            }
+                            data = data.replace(columns[i], newCol);
+                        }
+                        //ELSE SAVE THE COLUMN NAME TO THE VARIABLE COL
+                        else {
+                            col = columns[i];
+                        }
+						
+						var col2 = jQuery.trim(columns[i]);
+                        html += "<td>" + col + "</td>";
+                    }
+
+                    html += "</tr>";
+
+                    if (num == 1) {
+                        html += "</thead>";
+                    }
+
+                });
+                html += "</table>";
+                $j('#table-div').html(html);
+                document.getElementById("csvData").value = data;
+				if(isAdmin == 'true'){
+					document.getElementById("csvData2").value = data;
+				}
+                $j('#show_loading_gif').hide();
+                $j("#submitBtn").prop('disabled', false);
+            };
+            fileReader.readAsBinaryString(selectedFile);
+        }
+    });
+document
+    .getElementById("export-csv")
+    .addEventListener("click", function() {
+        var url = $j("#base-url").val() + $j("#tableName").val() + '_list.do?CSV&';
+        var params = [];
+        var checkedItems = $j(".option-values:checkbox:checked");
+        var fieldsSelect = [];
+
+        for (index in checkedItems) {
+            var checkedItem = checkedItems[index].value;
+            if (checkedItem) {
+                fieldsSelect.push(checkedItem);
+            }
+        }
+        params.push("sysparm_fields=sys_id," + fieldsSelect.join(","));
+
+        var query = urlParams.get('sysparm_query');
+        if (query) {
+            params.push("sysparm_query=" + query);
+        }
+        window.open(url + params.join("&"));
+    });
+
+document
+    .getElementById("export-field-definitions")
+    .addEventListener("click", function() {
+
+        window.open($j("#base-url").val() + 'sys_dictionary_list.do?CSV&sysparm_query=name=' + $j("#tableName").val() + '^function_field=false^active=true^internal_type!=collection^ORinternal_type=NULL^virtual=false&sysparm_fields=sys_name,element,internal_type,reference&sysparm_display_value=true&sysparm_export_column_header_label=true');
+
+    });
+
+function getResponse(response) {
+    var sysIDReturn = response.responseXML.documentElement.getAttribute("answer");
+    return sysIDReturn;
+}]]></client_script>
+        <description/>
+        <direct>false</direct>
+        <endpoint/>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	<g:evaluate var="sysparm_id">
+		var tableName = RP.getParameterValue("sysparm_target"); 
+		var query = RP.getParameterValue("sysparm_query"); 
+		var referringUrl = RP.getParameterValue("sysparm_referring_url");
+	</g:evaluate>
+	<head>
+		<style>
+			.panel-heading {
+				background-color: #D3D3D3 !important;
+			}
+		</style>
+	</head>
+	<body>
+		<input id="base-url" value="${gs.getProperty('glide.servlet.uri')}" style="display: none;" />
+		<button id="go-back" type="button" class="btn btn-danger" onClick="window.history.go(-1)" title="Go Back" style="margin-right:5px;">Go Back</button>
+
+		<div class="container">
+			<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+				<div class="panel panel-default">
+					<div class="panel-heading" role="tab" id="headingThree">
+						<h4 class="panel-title">
+							<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseTwo">
+								Instructions
+							</a>
+						</h4>
+					</div>
+					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+						<div class="panel-body">
+							<g:evaluate>
+								var importExportToolInstructions = gs.getProperty('import.export.tool.instructions');
+							</g:evaluate>
+							<g2:no_escape>${importExportToolInstructions}</g2:no_escape>
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading" role="tab" id="headingOne">
+						<h4 class="panel-title">
+							<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+								Export Data
+							</a>
+						</h4>
+					</div>
+					<div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+						<div class="panel-body">
+							<div class="alert alert-info" role="alert">Check the All Fields box to select all fields to include in your export. Limiting the number of fields will reduce the likelihood of import errors. The sys_id field and all mandatory fields are included by default on all exports and necessary for updating records, if this field is left blank it will create new records on ingest. Use the Export Field Definitions to view the column lable, name, type, and reference values. - See Embedded Help for additional information.</div>
+							<div id="allocatedAlert" class="alert alert-warning" role="alert" style="display:none;">On Export on this table there will be extra field columns that you did not select. This is to better help you identify the allocated controls. These fields cannot be changed and will not update. They are simply there to help. Future modifications will be made so you can exclude these fields if need be.</div>
+							
+							<div id="exportDiv">
+								<!-- <div class="checkbox">
+									<label>
+										<input id="allFields" type="checkbox" /> All Fields?
+									</label>
+								</div> -->
+								<!-- <div class="checkbox">
+									<label title="Selection of fields that are most commonly exported. Select additional fields to supplement your export as needed.">
+										<input id="commonExport" type="checkbox"/> Commonly Exported
+									</label>
+								</div> -->
+								<!-- <div class="checkbox">
+									<label>
+										<input id="allReadOnlyFields" type="checkbox" /> Deselect All Read Only Fields?
+									</label>
+								</div> -->
+				
+								<div class="row" style="margin-left:40px;">
+									<g:evaluate>
+										
+										var strFields = JSON.parse(gs.getProperty('import.export.tool.table_exportable'))[tableName]['fields'];
+										var fields = strFields.split(',');
+										var gr2 = new GlideRecord('sys_dictionary');
+										gr2.addQuery('name', tableName);
+										gr2.addQuery('internal_type', '!=', 'collection');
+										gr2.addQuery('active', 'true');
+										gr2.addQuery('function_field', false);
+										gr2.addQuery('virtual', false);
+										gr2.addQuery('element', '!=', 'sys_id');
+										gr2.addQuery('element', fields);
+										gr2.orderBy('column_label');
+										gr2.query();
+									</g:evaluate>
+									
+									<j:while test="${gr2.next()}">
+										<g:evaluate>
+											var element = gr2.getDisplayValue('element');
+											var sysID = gr2.getDisplayValue('sys_id');
+											var project_id = gr2.getDisplayValue('project_id');
+											var query = '='+sysID+'^name='+tableName+'^element='+element;
+											var gr3 = new GlideRecord('sys_documentation');
+											gr3.addEncodedQuery(query);
+											gr3.query();
+										</g:evaluate>
+										<div class="col-md-4 checkbox" style="margin-top:10px !important;" align="left">
+											<input type="hidden" id="projectName" value="${project_id}" />
+											<j:if test="${gr2.getValue('mandatory')}">
+												<input type="checkbox" class="option-values fieldCB mandatoryCB" value="${gr2.getValue('element')}" checked="checked" disabled="true"/>
+											</j:if>
+											
+											<j:if test="${gr2.getValue('mandatory') == 0}">
+												<j:if test="${gr2.getValue('read_only')}">
+													<input type="checkbox" class="option-values fieldCB readonlyCB" value="${gr2.getValue('element')}" checked="checked" />
+												</j:if>
+											</j:if>
+											<j:if test="${gr2.getValue('mandatory') == 0}">
+												<j:if test="${gr2.getValue('read_only') == 0}">
+													<input type="checkbox" class="option-values fieldCB" value="${gr2.getValue('element')}" checked="checked" />
+												</j:if>
+											</j:if>
+											<j:if test="${gr3.next()}">
+												<span title="${gr3.getValue('hint')}">
+													${gr2.getValue('column_label')}
+												</span>
+											</j:if>
+											<j:if test="${gr2.getValue('mandatory')}">
+												 - <small style="color:red;">(Mandatory)</small>
+											</j:if>
+											<j:if test="${gr2.getValue('read_only')}">
+													- <small style="color:grey;"> (Read Only)</small>
+											</j:if>
+											<j:if test="${gr2.getValue('internal_type') == 'reference'}">
+													- <small style="color:blue;"> (Reference Field)</small>
+											</j:if>
+										</div>
+									</j:while>
+								</div>
+								<button id='export-csv' class="btn btn-success" style="margin-right: 10px">Export CSV</button>  
+								<button id='export-field-definitions' class="btn btn-success">Export Field Definitions</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading" role="tab" id="headingTwo">
+						<h4 class="panel-title">
+							<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+								Import Data
+							</a>
+						</h4>
+					</div>
+					<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+						<div class="panel-body">
+							<div class="alert alert-info" role="alert">Once you have made your updates, click Choose File to preview and import the updated CSV. Review the file output for any errors and then click Submit when you're ready to import.</div>
+							<div class="alert alert-warning" role="alert">WARNING: Imports MUST be in CSV format, or they will fail.</div>
+							<g:ui_form>
+								
+								<div class="form-group">
+									<label for="tableName">Table</label>
+									<input type="text" id="tableName" name="tableName" readonly="readonly" class="form-control" value="${tableName}" style="width:200px;" />
+								</div>
+								<div class="form-group">
+									<label for="csvData">File Output</label>
+									<a href="#" title="Once you click 'preview' this text box will display raw output from the CSV. This is mostly used for troubleshooting.">
+										<span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="margin-left: 5px;"></span>
+									</a>
+									<!-- <img id="show_loading_gif" src="images/loading_anim2.gifx" height="30" border="0" style="display:none;" width="30"></img> -->
+									<div id="show_loading_gif" align='center' style='margin-bottom:10px; display:none;' class='loading'><span class='icon-loading'/> Loading controls, please wait...</div>
+									<div class="alert alert-info previewAlert" role="alert">Please select a CSV file and click preview to preview data.</div>
+									<input type="hidden" id='csvData' name='csvData' />
+									<input type="hidden" id='isAdmin' value="${gs.hasRole('admin')}" />
+									<j:if test="${gs.hasRole('admin')}">
+										<div class="col-12 mb-2">
+										<button type="button" id="showRawData" class="btn btn-danger" style="margin-right:5px; display:none;">Show Raw Data (admin only)</button>
+										</div>
+										<div class="col-12 mb-2">
+										<textarea id='csvData2' name='csvData2' style="height:100px; width: 650px; display:none;"></textarea>
+										</div>
+									</j:if>
+									
+									<!-- <textarea id='csvData2' name='csvData2' style="height:100px; width: 650px;"></textarea> -->
+									<div id="table-div" class="col-12" style="overflow-x: scroll; max-height: 500px;"></div>
+									
+								</div>
+								<div class="form-group" style="padding-top:5px; padding-bottom:5px">
+									<label for="fileUpload">File Upload</label>
+									<input type="file" id="fileUpload" accept=".csv" />
+								</div>
+								<!-- <input type="text" id="deleteDataString" name='deleteDataString' value="false" hidden="true" />
+								<div class="checkbox">
+									<label>
+										<input type="checkbox" id="deleteData" class="option-values" value="true" /> (BETA) Delete Data? 
+										<a href="#" title=" WARNING! Selecting this option will delete any records that do not exist in your csv import. This is still in beta and could cause unexpected issues and/or deletion of data. Proceed with caution. Reference the Import / Export Knowledge Base Article and the Embedded Help for more information.">
+											<span class="glyphicon glyphicon-question-sign" aria-hidden="true" style="margin-left: 5px;"></span>
+										</a>
+									</label>
+								</div> -->
+								<button type="button" id="uploadExcel" class="btn btn-warning" style="margin-right:5px;">Preview</button>
+								<button type="submit" id="submitBtn" class="btn btn-primary" disabled="disabled">Submit</button>	
+								<input type="text" id="referringUrl" name="referringUrl"  hidden="true" />
+
+
+								
+							</g:ui_form>		  
+						</div>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+
+	</body>
+</j:jelly>]]></html>
+        <name>import_export_tool</name>
+        <processing_script><![CDATA[var dataArray = new CSVtoJSON().getCSVtoJSON(csvData, ",");
+var arrayUtil = new global.ArrayUtil();
+var keys = Object.keys(dataArray[0]);
+var startTime = new GlideDateTime();
+//gs.info("JJH Keys: "+keys);
+
+if (!arrayUtil.contains(keys, "sys_id")) {
+    gs.addErrorMessage("ERROR: No `sys_id` column found!");
+}
+else if(new global.ImportExportUtil().checkUserRole(tableName) == false){
+	gs.addErrorMessage("ERROR: You are not allowed to run import/export for table " + tableName);
+}else {
+    //var doNotDelete = [];
+    var projects = [];
+    for (index in dataArray) {
+        var recordUpdated = false;
+        var data = dataArray[index];
+		
+        var gr = new GlideRecordSecure(tableName);
+        var systemFields = ["sys_class_name", "sys_created_by", "sys_created_on", "sys_mod_count", "sys_tags", "sys_updated_by", "sys_updated_on"];
+		var strFields = JSON.parse(gs.getProperty('import.export.tool.table_exportable'))[tableName]['fields'];
+		var fields = strFields.split(',');
+        if (data['sys_id'] == "") {
+            gr.initialize();
+            for (i in keys) {
+                var key = keys[i];
+				//gs.info("JJH key = "+key);
+                if (arrayUtil.contains(systemFields, key)) {
+                    continue;
+                }
+				if (!arrayUtil.contains(fields, key)) {
+                    continue;
+                }
+                if (gr.getValue(key) != data[key] && data[key] != "") {
+                    try {
+                        gr.setValue(key, data[key]);
+                    } catch (err) {
+                        gr.setValue(key, data[key]);
+                    }
+                }
+            }
+            try {
+                gr.insert();
+                //doNotDelete.push(gr.getValue('sys_id'));
+                if (gr.getLastErrorMessage()) {
+                    gs.addErrorMessage("ERROR: " + gr.getLastErrorMessage());
+                } else {
+                    gs.addInfoMessage("Inserted new record " + gr.getValue('sys_id'));
+                }
+            } catch (err) {
+                gs.addErrorMessage("ERROR: " + err);
+            }
+
+        } else {
+            gr.addQuery('sys_id', data['sys_id']);
+            gr.query();
+            if (gr.getRowCount() == 0) {
+                gs.addErrorMessage('ERROR: No sys_id exists for ' + data['sys_id']);
+                continue;
+            }
+            gr.next();
+            for (i in keys) {
+                var key = keys[i];
+                if (arrayUtil.contains(systemFields, key)) {
+                    continue;
+                }
+				if (!arrayUtil.contains(fields, key)) {
+                    continue;
+                }
+
+                var keyValue = data[key];
+                var recValue = data[key];
+                if (data[key] == '') {
+                    keyValue = null;
+                }
+                if (gr.getValue(key) == '') {
+                    recValue = null;
+                }
+                if (gr.getValue(key) != keyValue) {
+
+                    //check the choice list values
+                    var choiceArr = [];
+					var rejectChoiceVal = false;
+					
+                    var grChoices = new GlideRecord('sys_choice');
+					grChoices.addEncodedQuery('nameSTARTSWITH'+tableName+'^elementSTARTSWITH'+key);
+                    //grChoices.addQuery('element', key);
+                    //grChoices.addQuery('table', tableName);
+                    grChoices.query();
+
+                    while (grChoices.next()) {
+                        choiceArr.push(grChoices.value.getDisplayValue());
+                    }
+                    if(grChoices.getRowCount() > 0 && choiceArr.indexOf(data[key]) == -1){
+						gs.info("Choice Array: "+choiceArr);
+						gs.info("row count: "+grChoices.getRowCount()+" // choiceArr: "+ choiceArr.indexOf(data[key])+ " // tablename: "+tableName);
+						rejectChoiceVal = true;
+					}
+
+					try {
+                        if (gr[key].canWrite() && rejectChoiceVal == false) {
+                            gr.setValue(key, data[key]);
+                            recordUpdated = true;
+                        } else {
+							gs.info("grKey: "+key+" // rejectChoiceVal: "+rejectChoiceVal+" // canWrite: "+gr[key].canWrite());
+                            gs.addErrorMessage("You cannot update field " + key);
+                        }
+                    } catch (err) {
+						if(rejectChoiceVal == false){
+							gr.setValue(key, data[key]);
+							recordUpdated = true;
+						}
+                        
+                    }
+                }
+            }
+            try {
+                if (recordUpdated) {
+                    gr.update();
+                    //doNotDelete.push(gr.getValue('sys_id'));
+                    if (gr.getLastErrorMessage()) {
+                        gs.addErrorMessage("ERROR: " + gr.getLastErrorMessage());
+                    } else {
+                        gs.addInfoMessage("Updated " + data['sys_id']);
+                    }
+                }
+            } catch (err) {
+                gs.addErrorMessage("ERROR: " + err);
+            }
+        }
+    }
+//     if (deleteDataString == "true") {
+//         var deleteGr = new GlideRecordSecure(tableName);
+//         deleteGr.addQuery("project_id", "IN", projects);
+//         deleteGr.addQuery("sys_id", "NOT IN", doNotDelete);
+//         deleteGr.query();
+//         while (deleteGr.next()) {
+//             try {
+//                 deleteGr.deleteRecord();
+//             } catch (err) {
+//                 gs.addErrorMessage("ERROR: " + err);
+//             }
+//         }
+
+//     }
+    var endTime = new GlideDateTime();
+    var grLog = new GlideRecord('syslog');
+    grLog.addEncodedQuery('level>=1^sys_created_onBETWEEN' + startTime + '@' + endTime + '^sys_created_by=' + gs.getUserName());
+    grLog.query();
+    while (grLog.next()) {
+        gs.addErrorMessage(grLog.getValue('message'));
+    }
+
+}
+response.sendRedirect(referringUrl);]]></processing_script>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>kyle.cribbs</sys_created_by>
+        <sys_created_on>2022-04-10 16:48:23</sys_created_on>
+        <sys_id>6710e5151b3a4110bea4fcc6cc4bcb87</sys_id>
+        <sys_mod_count>24</sys_mod_count>
+        <sys_name>import_export_tool</sys_name>
+        <sys_package display_value="Import/Export Tool" source="31fc99111b3a4110bea4fcc6cc4bcb6b">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Import/Export Tool">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_scope>
+        <sys_update_name>sys_ui_page_6710e5151b3a4110bea4fcc6cc4bcb87</sys_update_name>
+        <sys_updated_by>kyle.cribbs</sys_updated_by>
+        <sys_updated_on>2022-04-11 00:19:05</sys_updated_on>
+    </sys_ui_page>
+</record_update>
