@@ -10,10 +10,10 @@
         <script><![CDATA[var ImportExportUtil = Class.create();
 ImportExportUtil.prototype = {
     initialize: function() {
-		this.tableExportable = JSON.parse(gs.getProperty('import.export.tool.table_exportable_fields'));
+		this.tableExportable = JSON.parse(gs.getProperty('import.export.tool.table_exportable_fields', {}));
     },
 	checkUserRole: function(table){
-		var tableConfig = this.tableExportable[table];
+		var tableConfig = table in this.tableExportable ? this.tableExportable[table] : null;
 		if(tableConfig){
 			var roles = tableConfig['roles'];
 			if(roles){
@@ -41,13 +41,13 @@ ImportExportUtil.prototype = {
         <sys_created_by>kyle.cribbs</sys_created_by>
         <sys_created_on>2022-04-10 18:32:53</sys_created_on>
         <sys_id>2ff7b5d91b7a4110bea4fcc6cc4bcb1c</sys_id>
-        <sys_mod_count>5</sys_mod_count>
+        <sys_mod_count>6</sys_mod_count>
         <sys_name>ImportExportUtil</sys_name>
         <sys_package display_value="Import/Export Tool" source="31fc99111b3a4110bea4fcc6cc4bcb6b">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_package>
         <sys_policy/>
         <sys_scope display_value="Import/Export Tool">31fc99111b3a4110bea4fcc6cc4bcb6b</sys_scope>
         <sys_update_name>sys_script_include_2ff7b5d91b7a4110bea4fcc6cc4bcb1c</sys_update_name>
         <sys_updated_by>kyle.cribbs</sys_updated_by>
-        <sys_updated_on>2022-04-11 00:18:37</sys_updated_on>
+        <sys_updated_on>2022-06-12 19:37:37</sys_updated_on>
     </sys_script_include>
 </record_update>
